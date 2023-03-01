@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import useSWR from "swr";
 import Button from "../Button";
+import { useState } from "react";
 
 const StyledForm = styled.form`
   display: flex;
@@ -9,36 +9,27 @@ const StyledForm = styled.form`
   margin-block-start: 2rem;
 `;
 
-export default function JokeForm() {
-  const jokes = useSWR("/api/jokes");
+export default function JokeForm({ value, onSubmit, mutate }) {
+  const [joke, setJoke] = useState(value);
 
-  async function handleSubmit(event) {
+  function handleUpdate(event) {
     event.preventDefault();
-
     const formData = new FormData(event.target);
     const jokeData = Object.fromEntries(formData);
-
-    const response = await fetch("/api/jokes", {
-      method: "POST",
-      body: JSON.stringify(jokeData),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      await response.json();
-      jokes.mutate();
-      event.target.reset();
-    } else {
-      console.error(`Error: ${response.status}`);
-    }
+    onSubmit(jokeData);
+    mutate();
   }
 
   return (
-    <StyledForm onSubmit={handleSubmit}>
+    <StyledForm onSubmit={handleUpdate}>
       <label htmlFor="joke-input">Submit Joke</label>
-      <input type="text" id="joke-input" name="joke" />
+      <input
+        type="text"
+        id="joke-input"
+        name="joke"
+        value={joke}
+        onChange={(event) => setJoke(event.target.value)}
+      />
       <Button width="fit-content" type="submit">
         Submit
       </Button>
